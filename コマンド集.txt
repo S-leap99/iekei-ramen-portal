@@ -1,0 +1,36 @@
+サーバー起動
+===
+npm run dev
+===
+
+管理画面
+===
+http://localhost:3000/admin/shops
+===
+
+API PUSH(※PowerShell)
+===
+Invoke-RestMethod `
+  -Uri http://localhost:3000/api/admin/shops `
+  -Method Post `
+  -ContentType "application/json; charset=utf-8" `
+  -Body (@{
+    name = "テスト店"
+    address = "横浜市西区"
+    paymentMethods = @("cash")
+    twitter = "https://twitter.com/example"
+  } | ConvertTo-Json)
+
+===
+
+API DELET(※PowerShell)
+===
+Invoke-RestMethod `
+  -Uri http://localhost:3000/api/admin/shops/your-shop-id `
+  -Method Delete
+===
+
+prismaDB確認
+===
+npx prisma studio
+===
