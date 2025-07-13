@@ -1,38 +1,35 @@
 // app/genealogy/page.tsx
 'use client';
-
 import React, { useEffect, useState } from 'react';
 import GenealogyTree from '@/components/GenealogyTree';
-import { useSession } from 'next-auth/react';
 
 export default function GenealogyPage() {
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
-  const [treeData, setTreeData] = useState<any[]>([]);
-  const [stampMap, setStampMap] = useState<Record<string, 'tabetai' | 'tabetta'>>({});
+  const [data, setData] = useState<any[] | null>(null);
 
   useEffect(() => {
     fetch('/api/shops/genealogy')
       .then(res => res.json())
-      .then((data: any[]) => setTreeData(data))
-      .catch(err => console.error('系譜データ取得エラー', err));
+      .then((tree: any[]) => setData(tree))
+      .catch(err => {
+        console.error('系譜データ取得エラー', err);
+        setData([]);  // エラーでも「空配列」で止める
+      });
   }, []);
 
-  useEffect(() => {
-    if (!userId) return;
-    fetch(`/api/stamps?userId=${userId}`)
-      .then(res => res.json())
-      .then((stamps: { shopId: string; status: 'tabetai' | 'tabetta' }[]) => {
-        const map: Record<string, 'tabetai' | 'tabetta'> = {};
-        stamps.forEach(s => { map[s.shopId] = s.status; });
-        setStampMap(map);
-      })
-      .catch(err => console.error('スタンプデータ取得エラー', err));
-  }, [userId]);
+  // まだ取得前
+  if (data === null) {
+    return <div className="w-full h-screen flex items-center justify-center">系譜図を読み込み中…</div>;
+  }
 
+  // 取得後にデータが空ならメッセージ表示（DBにデータがないケース）
+  if (data.length === 0) {
+    return <div className="w-full h-screen flex items-center justify-center">系譜データがありません</div>;
+  }
+
+  // データがあるときだけ描画
   return (
     <div className="w-full h-screen">
-      <GenealogyTree data={treeData} stampMap={stampMap} />
+      <GenealogyTree data={data} />
     </div>
   );
 }
