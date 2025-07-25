@@ -24,13 +24,6 @@ export default function MapPage() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [stampMap, setStampMap] = useState<Record<string, 'tabetai' | 'tabetta'>>({});
   const [center, setCenter] = useState<[number, number]>([35.464, 139.617]);
-  const center: LatLngExpression = (() => {
-    if (centerId && shops.length) {
-      const s = shops.find(s => s.id === centerId);
-      return s ? [s.lng!, s.lat!] : defaultCenter;
-    }
-    return defaultCenter;
-  })();  
 
   useEffect(() => {
     fetch('/api/shops').then(r => r.json()).then(data => setShops(data));
