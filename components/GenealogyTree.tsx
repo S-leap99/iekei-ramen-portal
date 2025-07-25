@@ -8,18 +8,15 @@ import { useRouter } from 'next/navigation';
 import type {
   RenderCustomNodeElementFn,
   CustomNodeElementProps,
-  RenderCustomLinkElementFn,
   CustomLinkElementProps,
 } from 'react-d3-tree';
 
-// SSRをオフにしてクライアントでのみ読み込む
+// SSR をオフにしてクライアントでのみ読み込む
 const Tree = dynamic(() => import('react-d3-tree'), { ssr: false });
 
 interface NodeDatum {
   name: string;
-  attributes: {
-    id: string;
-  };
+  attributes: { id: string };
   children?: NodeDatum[];
 }
 
@@ -27,17 +24,15 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
   const router = useRouter();
   const { data: session } = useSession();
 
-  // スタンプ状態マップを初期化
   const [stampMap, setStampMap] = useState<Record<string, 'tabetai' | 'tabetta'>>({});
-  // 選択中ノード
   const [selectedNode, setSelectedNode] = useState<NodeDatum | null>(null);
 
-  // デバッグ：選択ノードの変更をログ
+  // 選択ノードログ
   useEffect(() => {
     console.log('selectedNode changed:', selectedNode);
   }, [selectedNode]);
 
-  // マウント時にユーザーのスタンプ情報を取得
+  // スタンプ情報取得
   useEffect(() => {
     if (!session?.user?.id) return;
     fetch(`/api/stamps?userId=${session.user.id}`)
@@ -52,25 +47,21 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
       .catch(err => console.error('スタンプ情報取得エラー', err));
   }, [session]);
 
-  // ノードクリック
   const handleNodeClick = useCallback(
     (nodeDatum: NodeDatum, evt: React.MouseEvent) => {
-      evt.preventDefault();
       evt.stopPropagation();
       setSelectedNode(nodeDatum);
     },
     []
   );
 
-  // 背景クリックでパネルを閉じる
   const handleBackgroundClick = (evt: React.MouseEvent) => {
     if (evt.currentTarget === evt.target) setSelectedNode(null);
   };
 
-  // カスタムノード描画（型を合わせる）
-  const renderRectNode: RenderCustomNodeElementFn = (rd3tProps) => {
-    // 型アサーションで自前の NodeDatum に合わせる
-    const nodeDatum = rd3tProps.nodeDatum as NodeDatum;
+  // カスタムノード描画
+  const renderRectNode: RenderCustomNodeElementFn = props => {
+    const nodeDatum = (props as CustomNodeElementProps).nodeDatum as NodeDatum;
     const status = stampMap[nodeDatum.attributes.id];
     const fillColor =
       status === 'tabetai' ? '#ef4444' :
@@ -91,7 +82,7 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
           x={-50}
           y={-80}
           rx={8}
-          ry={8}
+          ry={10}
           fill={fillColor}
           stroke="#4b5563"
           strokeWidth={2}
@@ -114,9 +105,9 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
     );
   };
 
-  // カスタムリンク描画（型を合わせる）
-  const renderCustomLinkElement: RenderCustomLinkElementFn = (props) => {
-    const { source, target } = props as CustomLinkElementProps;
+  // カスタムリンク描画
+  const renderCustomLinkElement = (props: CustomLinkElementProps) => {
+    const { source, target } = props;
     const startX = source.x;
     const startY = source.y + 80;
     const endX = target.x;
@@ -133,7 +124,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
 
   return (
     <div className="w-full h-screen relative" onClick={handleBackgroundClick}>
-      {/* Tree */}
       <div className="relative z-10 w-full h-full">
         <Tree
           data={data}
@@ -147,7 +137,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
         />
       </div>
 
-      {/* サイドパネル */}
       {selectedNode && (
         <>
           <div
@@ -181,36 +170,38 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
             >
               ×
             </button>
-            <h2
-              style={{
-                fontSize: '20px', fontWeight: 600,
-                marginBottom: '16px', color: '#1f2937',
-              }}
-            >
+            <h2 style={{
+              fontSize: '20px',
+              fontWeight: 600,
+              marginBottom: '16px',
+              color: '#1f2937',
+            }}>
               {selectedNode.name}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <button
                 style={{
-                  padding: '8px 16px', backgroundColor: '#3b82f6',
-                  color: 'white', border: 'none', borderRadius: '4px',
+                  padding: '8px 16px',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
                   cursor: 'pointer',
                 }}
-                onClick={() =>
-                  router.push(`/shops/${selectedNode.attributes.id}`)
-                }
+                onClick={() => router.push(`/shops/${selectedNode.attributes.id}`)}
               >
                 店舗詳細
               </button>
               <button
                 style={{
-                  padding: '8px 16px', backgroundColor: '#10b981',
-                  color: 'white', border: 'none', borderRadius: '4px',
+                  padding: '8px 16px',
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
                   cursor: 'pointer',
                 }}
-                onClick={() =>
-                  router.push(`/map?centerId=${selectedNode.attributes.id}`)
-                }
+                onClick={() => router.push(`/map?centerId=${selectedNode.attributes.id}`)}
               >
                 マップ
               </button>
