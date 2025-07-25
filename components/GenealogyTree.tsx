@@ -10,7 +10,6 @@ import type {
   CustomNodeElementProps,
 } from 'react-d3-tree';
 
-// SSRをオフにしてクライアントでのみ読み込む
 const Tree = dynamic(() => import('react-d3-tree'), { ssr: false });
 
 interface NodeDatum {
@@ -54,9 +53,10 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
     if (evt.currentTarget === evt.target) setSelectedNode(null);
   };
 
-  // カスタムノード描画
   const renderRectNode: RenderCustomNodeElementFn = (props) => {
-    const nodeDatum = (props as CustomNodeElementProps).nodeDatum as NodeDatum;
+    // props.nodeDatum は TreeNodeDatum 型ですが、
+    // ここで your NodeDatum として扱う意図を示すため unknown 経由でキャスト
+    const nodeDatum = (props as CustomNodeElementProps).nodeDatum as unknown as NodeDatum;
     const status = stampMap[nodeDatum.attributes.id];
     const fillColor =
       status === 'tabetai' ? '#ef4444'
@@ -80,7 +80,8 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
           strokeWidth={2}
         />
         <text
-          x={0} y={0}
+          x={0}
+          y={0}
           textAnchor="middle"
           dominantBaseline="middle"
           style={{
@@ -96,7 +97,7 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
     );
   };
 
-  // カスタムリンク描画（anyで受ける）
+  // Custom link element は any で受けて問題ありません
   const renderCustomLinkElement = (linkProps: any) => {
     const { source, target } = linkProps;
     const startX = source.x;
