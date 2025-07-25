@@ -8,10 +8,9 @@ import { useRouter } from 'next/navigation';
 import type {
   RenderCustomNodeElementFn,
   CustomNodeElementProps,
-  CustomLinkElementProps,
 } from 'react-d3-tree';
 
-// SSR をオフにしてクライアントでのみ読み込む
+// SSRをオフにしてクライアントでのみ読み込む
 const Tree = dynamic(() => import('react-d3-tree'), { ssr: false });
 
 interface NodeDatum {
@@ -27,21 +26,17 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
   const [stampMap, setStampMap] = useState<Record<string, 'tabetai' | 'tabetta'>>({});
   const [selectedNode, setSelectedNode] = useState<NodeDatum | null>(null);
 
-  // 選択ノードログ
   useEffect(() => {
     console.log('selectedNode changed:', selectedNode);
   }, [selectedNode]);
 
-  // スタンプ情報取得
   useEffect(() => {
     if (!session?.user?.id) return;
     fetch(`/api/stamps?userId=${session.user.id}`)
       .then(res => res.json())
       .then((stamps: { shopId: string; status: 'tabetai' | 'tabetta' }[]) => {
         const map: Record<string, 'tabetai' | 'tabetta'> = {};
-        stamps.forEach(s => {
-          map[s.shopId] = s.status;
-        });
+        stamps.forEach(s => { map[s.shopId] = s.status; });
         setStampMap(map);
       })
       .catch(err => console.error('スタンプ情報取得エラー', err));
@@ -60,21 +55,18 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
   };
 
   // カスタムノード描画
-  const renderRectNode: RenderCustomNodeElementFn = props => {
+  const renderRectNode: RenderCustomNodeElementFn = (props) => {
     const nodeDatum = (props as CustomNodeElementProps).nodeDatum as NodeDatum;
     const status = stampMap[nodeDatum.attributes.id];
     const fillColor =
-      status === 'tabetai' ? '#ef4444' :
-      status === 'tabetta' ? '#9ca3af' :
-      '#f3f4f6';
+      status === 'tabetai' ? '#ef4444'
+      : status === 'tabetta' ? '#9ca3af'
+      : '#f3f4f6';
 
     return (
       <g
         style={{ pointerEvents: 'all', cursor: 'pointer' }}
-        onClick={evt => {
-          evt.stopPropagation();
-          handleNodeClick(nodeDatum, evt);
-        }}
+        onClick={evt => { evt.stopPropagation(); handleNodeClick(nodeDatum, evt); }}
       >
         <rect
           width={100}
@@ -88,8 +80,7 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
           strokeWidth={2}
         />
         <text
-          x={0}
-          y={0}
+          x={0} y={0}
           textAnchor="middle"
           dominantBaseline="middle"
           style={{
@@ -105,9 +96,9 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
     );
   };
 
-  // カスタムリンク描画
-  const renderCustomLinkElement = (props: CustomLinkElementProps) => {
-    const { source, target } = props;
+  // カスタムリンク描画（anyで受ける）
+  const renderCustomLinkElement = (linkProps: any) => {
+    const { source, target } = linkProps;
     const startX = source.x;
     const startY = source.y + 80;
     const endX = target.x;
