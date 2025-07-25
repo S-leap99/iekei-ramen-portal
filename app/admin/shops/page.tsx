@@ -54,8 +54,10 @@ export default function ShopListPage() {
               <td className="border px-4 py-2">{shop.id}</td>
               <td className="border px-4 py-2">{shop.name}</td>
               <td className="border px-4 py-2">{shop.address}</td>
-              <td className="border px-4 py-2">{shop.lat}</td>
-              <td className="border px-4 py-2">{shop.lng}</td>
+              <td className="border px-4 py-2">{shop.lat ?? 'N/A'}</td>
+		<td className="border px-4 py-2">{shop.lng ?? 'N/A'}</td>
+              //<td className="border px-4 py-2">{shop.lat}</td>
+              //<td className="border px-4 py-2">{shop.lng}</td>
               <td className="border px-4 py-2">{shop.parentId}</td>
               <td className="border px-4 py-2">{shop.paymentMethods.join(', ')}</td>
               <td className="border px-4 py-2 space-x-2">
