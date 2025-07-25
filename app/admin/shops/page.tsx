@@ -11,10 +11,10 @@ interface Shop {
   id: string;
   name: string;
   address: string;
-  lat: number;        // 追加
-  lng: number;        // 追加
+  lat: float;        // 追加
+  lng: float;        // 追加
   parentId?: string;  // 追加（nullableの場合は?を付ける）
-  paymentMethods?: string[];
+  paymentMethods: string[];
   twitter?: string;
 }
 export default function ShopListPage() {
