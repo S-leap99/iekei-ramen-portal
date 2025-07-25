@@ -5,8 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 
+// prisma/schema.prisma
 // ====================
-// SQLite データベース設定
+// PostgreSQL データベース設定
 // ====================
 
 datasource db {
@@ -23,18 +24,18 @@ generator client {
 // モデル定義：Shop
 // ====================
 model Shop {
-  id             String   @id @default(cuid())
+  id             String              @id @default(cuid())
   name           String
   address        String
-  lat Float?   // 緯度
-  lng Float?   // 経度  
-  paymentMethods Json     @default("[]") 
-  twitter        String?  
-  parentId       String?  // 追加: 親ノードのID
-  parent         Shop?    @relation("ShopToChildren", fields: [parentId], references: [id])
-  children       Shop[]   @relation("ShopToChildren")  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  lat            Float?              // 緯度
+  lng            Float?              // 経度
+  paymentMethods Json                @default("[]")
+  twitter        String?
+  parentId       String?             // 親ノードのID
+  parent         Shop?               @relation("ShopToChildren", fields: [parentId], references: [id])
+  children       Shop[]              @relation("ShopToChildren")
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
   stamps         UserStampedShop[]
 }
 
@@ -42,23 +43,23 @@ model Shop {
 // アカウント認証用
 // ====================
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
+  id            String              @id @default(cuid())
+  email         String              @unique
   emailVerified DateTime?
   name          String?
   accounts      Account[]
   sessions      Session[]
-  stamps         UserStampedShop[]
+  stamps        UserStampedShop[]
 }
 
-/// Represents a user's stamp (タベタ/タベタイ) on a shop
+/// ユーザーが付けたスタンプ情報
 model UserStampedShop {
   id        String   @id @default(cuid())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   shopId    String
-  status    String   // e.g. "tabetai" or "tabetta"
+  status    String   // "tabetai" または "tabetta"
   createdAt DateTime @default(now())
 
   @@unique([userId, shopId])
@@ -78,7 +79,7 @@ model Account {
   id_token          String?
   session_state     String?
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([provider, providerAccountId])
 }
 
@@ -94,6 +95,6 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-  
+
   @@unique([identifier, token])
 }

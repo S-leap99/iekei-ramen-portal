@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../api/auth/[...nextauth]/route';
+import { authOptions } from '/lib/auth';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
