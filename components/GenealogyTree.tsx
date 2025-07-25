@@ -10,7 +10,7 @@ import type {
   CustomNodeElementProps,
 } from 'react-d3-tree';
 
-const Tree = dynamic(() => import('react-d3-tree'), { ssr: false });
+const Tree: any = dynamic(() => import('react-d3-tree'), { ssr: false });
 
 interface NodeDatum {
   name: string;
