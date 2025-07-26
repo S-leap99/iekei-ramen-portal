@@ -1,4 +1,6 @@
 // app/api/auth/[...nextauth]/route.ts
+console.log('🔍 DATABASE_URL:', process.env.DATABASE_URL);
+
 import NextAuth from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
