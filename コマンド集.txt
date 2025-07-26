@@ -34,3 +34,10 @@ prismaDB確認
 ===
 npx prisma studio
 ===
+
+GitHub
+===
+git add -A
+git commit -m "Supabase 切り替え反映"
+git push origin main
+===

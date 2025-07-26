@@ -1,9 +1,9 @@
-// app/map/page.tsx
+// app/map/MapComponent.tsx
 'use client';
-export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
@@ -15,50 +15,16 @@ interface Shop {
   lng: number; 
 }
 
-// Leaflet関連コンポーネントを動的インポート
-const MapContainer = dynamic(
-  () => import('react-leaflet').then(mod => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import('react-leaflet').then(mod => mod.TileLayer),
-  { ssr: false }
-);
-const CircleMarker = dynamic(
-  () => import('react-leaflet').then(mod => mod.CircleMarker),
-  { ssr: false }
-);
-const Popup = dynamic(
-  () => import('react-leaflet').then(mod => mod.Popup),
-  { ssr: false }
-);
-const useMap = dynamic(
-  () => import('react-leaflet').then(mod => ({ default: mod.useMap })),
-  { ssr: false }
-);
-
 // 動的に中心を再設定
 function Recenter({ center }: { center: [number, number] }) {
-  const [map, setMap] = useState<any>(null);
-  
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      import('react-leaflet').then(({ useMap }) => {
-        // クライアントサイドでのみ useMap を使用
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (map) {
-      map.setView(center, map.getZoom());
-    }
+  const map = useMap();
+  useEffect(() => { 
+    map.setView(center, map.getZoom()); 
   }, [center, map]);
-  
   return null;
 }
 
-export default function MapPage() {
+export default function MapComponent() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const params = useSearchParams();
@@ -69,18 +35,19 @@ export default function MapPage() {
   const [center, setCenter] = useState<[number, number]>([35.464, 139.617]);
   const [isClient, setIsClient] = useState(false);
 
-  // CSS動的読み込み
+  // クライアントサイドであることを確認
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      import('leaflet/dist/leaflet.css');
-      setIsClient(true);
-    }
+    setIsClient(true);
   }, []);
 
   useEffect(() => {
     if (!isClient) return;
     
-    fetch('/api/shops').then(r => r.json()).then(data => setShops(data));
+    fetch('/api/shops')
+      .then(r => r.json())
+      .then(data => setShops(data))
+      .catch(err => console.error('Failed to fetch shops:', err));
+    
     if (userId) {
       fetch(`/api/stamps?userId=${userId}`)
         .then(r => r.json())
@@ -88,7 +55,8 @@ export default function MapPage() {
           const m: any = {};
           stamps.forEach(s => m[s.shopId] = s.status);
           setStampMap(m);
-        });
+        })
+        .catch(err => console.error('Failed to fetch stamps:', err));
     }
   }, [userId, isClient]);
 
@@ -99,9 +67,11 @@ export default function MapPage() {
       .then(r => r.json())
       .then((shop: Shop) => {
         setCenter([shop.lat, shop.lng]);
-      });
+      })
+      .catch(err => console.error('Failed to fetch center shop:', err));
   }, [centerId, isClient]);
 
+  // クライアントサイドでない場合はローディング表示
   if (!isClient) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
