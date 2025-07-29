@@ -1,73 +1,66 @@
 // components/StampToggle.tsx
-'use client';
+'use client'
 
-import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { useSession, signIn } from 'next-auth/react';
 
 interface StampToggleProps {
   shopId: string;
 }
 
-type Stamp = {
-  shopId: string;
-  shopName: string;
-  status: 'tabetta' | 'tabetai';
-};
-
 export default function StampToggle({ shopId }: StampToggleProps) {
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
-  const [status, setStatus] = useState<Stamp['status'] | null>(null);
+  const { data: session, status } = useSession();
+  const [statusValue, setStatusValue] = useState<'tabetai' | 'tabetta' | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // 初期ロードで現在のスタンプ状態を取得
   useEffect(() => {
-    if (!userId) return;
-    fetch(`/api/stamps?userId=${userId}`)
-      .then(res => res.json())
-      .then((stamps: Stamp[]) => {
-        const existing = stamps.find(s => s.shopId === shopId);
-        setStatus(existing?.status ?? null);
-      })
-      .catch(console.error);
-  }, [userId, shopId]);
-
-  const handleToggle = async (newStatus: Stamp['status']) => {
-    if (!userId) return;
-    setLoading(true);
-    try {
-      await fetch('/api/stamps', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, shopId, status: newStatus }),
-      });
-      setStatus(newStatus);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
+    if (status === 'unauthenticated') {
+      signIn(); // ← 認証されていなければ即座にサインイン画面へ
+      return;
     }
+
+    if (!session) return;
+
+    fetch(`/api/stamps?userId=${session.user.id}`)
+      .then(res => res.json())
+      .then(stamps => {
+        const stamp = stamps.find((s: any) => s.shopId === shopId);
+        setStatusValue(stamp?.status ?? null);
+      })
+      .catch(() => setStatusValue(null));
+  }, [status, session, shopId]);
+
+  const toggleStatus = async (newStatus: 'tabetai' | 'tabetta') => {
+    if (!session) return;
+    setLoading(true);
+    await fetch('/api/stamps', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: session.user.id,
+        shopId,
+        status: newStatus,
+      }),
+    });
+    setStatusValue(newStatus);
+    setLoading(false);
   };
 
-  if (!session) {
-    return <p className="text-sm text-gray-500">ログインでスタンプ可能</p>;
-  }
+  if (status === 'loading' || loading) return <p>読み込み中...</p>;
 
   return (
-    <div className="flex gap-2 mt-4">
+    <div className="flex gap-4 mt-4">
       <button
-        onClick={() => handleToggle('tabetta')}
-        disabled={loading}
-        className={`px-3 py-1 rounded ${status === 'tabetta' ? 'bg-blue-500 text-white' : 'border border-gray-300'}`}
+        className={`px-4 py-2 rounded ${statusValue === 'tabetai' ? 'bg-red-500 text-white' : 'bg-gray-200'}`}
+        onClick={() => toggleStatus('tabetai')}
       >
-        行った
+        タベタイ
       </button>
       <button
-        onClick={() => handleToggle('tabetai')}
-        disabled={loading}
-        className={`px-3 py-1 rounded ${status === 'tabetai' ? 'bg-green-500 text-white' : 'border border-gray-300'}`}
+        className={`px-4 py-2 rounded ${statusValue === 'tabetta' ? 'bg-green-500 text-white' : 'bg-gray-200'}`}
+        onClick={() => toggleStatus('tabetta')}
       >
-        行きたい
+        タベタ
       </button>
     </div>
   );
