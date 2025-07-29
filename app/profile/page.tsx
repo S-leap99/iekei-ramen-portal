@@ -21,9 +21,10 @@ export default async function ProfilePage() {
   }
   // スタンプ取得
   const res = await fetch(
-    `${process.env.NEXTAUTH_URL}/api/stamps?userId=${session.user.id}`,
+    `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/api/stamps?userId=${session.user.id}`,
     { cache: 'no-store' }
-  );
+  );  
+  
   const stamps: Array<{ shopId: string; shopName: string; status: string }> = await res.json();
 
   return (
