@@ -24,7 +24,6 @@ function Recenter({ center }: { center: [number, number] }) {
 }
 
 export default function MapComponent() {
-  const userId = session?.user?.id;
   const params = useSearchParams();
   const centerId = params.get('centerId');
   
@@ -46,17 +45,7 @@ export default function MapComponent() {
       .then(data => setShops(data))
       .catch(err => console.error('Failed to fetch shops:', err));
     
-    if (userId) {
-      fetch(`/api/stamps?userId=${userId}`)
-        .then(r => r.json())
-        .then((stamps: any[]) => {
-          const m: any = {};
-          stamps.forEach(s => m[s.shopId] = s.status);
-          setStampMap(m);
-        })
-        .catch(err => console.error('Failed to fetch stamps:', err));
-    }
-  }, [userId, isClient]);
+  }, [ isClient]);
 
   useEffect(() => {
     if (!isClient || !centerId) return;
