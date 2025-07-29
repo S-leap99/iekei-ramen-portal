@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 
 interface StampToggleProps {
   shopId: string;
@@ -33,7 +33,11 @@ export default function StampToggle({ shopId }: StampToggleProps) {
   }, [userId, shopId]);
 
   const handleToggle = async (newStatus: Stamp['status']) => {
-    if (!userId) return;
+    if (!userId) {
+      signIn(); // 認証ページにリダイレクト
+      return;
+    }
+
     setLoading(true);
     try {
       await fetch('/api/stamps', {
@@ -48,10 +52,6 @@ export default function StampToggle({ shopId }: StampToggleProps) {
       setLoading(false);
     }
   };
-
-  if (!session) {
-    return <p className="text-sm text-gray-500">ログインでスタンプ可能</p>;
-  }
 
   return (
     <div className="flex gap-2 mt-4">
