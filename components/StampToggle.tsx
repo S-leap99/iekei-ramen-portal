@@ -2,14 +2,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession, signIn } from 'next-auth/react'
 
 interface StampToggleProps {
   shopId: string
 }
 
 export default function StampToggle({ shopId }: StampToggleProps) {
-  const { data: session } = useSession()
   const [status, setStatus] = useState<'tabetai' | 'tabetta' | null>(null)
 
   useEffect(() => {

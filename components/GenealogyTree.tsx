@@ -3,7 +3,6 @@
 
 import React, { useCallback, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import type {
   RenderCustomNodeElementFn,
@@ -20,7 +19,6 @@ interface NodeDatum {
 
 export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
   const router = useRouter();
-  const { data: session } = useSession();
 
   const [stampMap, setStampMap] = useState<Record<string, 'tabetai' | 'tabetta'>>({});
   const [selectedNode, setSelectedNode] = useState<NodeDatum | null>(null);
