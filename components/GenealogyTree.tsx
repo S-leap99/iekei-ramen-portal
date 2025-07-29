@@ -3,7 +3,6 @@
 
 import React, { useCallback, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import type {
   RenderCustomNodeElementFn,
@@ -20,7 +19,6 @@ interface NodeDatum {
 
 export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
   const router = useRouter();
-  const { data: session } = useSession();
 
   const [stampMap, setStampMap] = useState<Record<string, 'tabetai' | 'tabetta'>>({});
   const [selectedNode, setSelectedNode] = useState<NodeDatum | null>(null);
@@ -28,18 +26,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
   useEffect(() => {
     console.log('selectedNode changed:', selectedNode);
   }, [selectedNode]);
-
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    fetch(`/api/stamps?userId=${session.user.id}`)
-      .then(res => res.json())
-      .then((stamps: { shopId: string; status: 'tabetai' | 'tabetta' }[]) => {
-        const map: Record<string, 'tabetai' | 'tabetta'> = {};
-        stamps.forEach(s => { map[s.shopId] = s.status; });
-        setStampMap(map);
-      })
-      .catch(err => console.error('スタンプ情報取得エラー', err));
-  }, [session]);
 
   const handleNodeClick = useCallback(
     (nodeDatum: NodeDatum, evt: React.MouseEvent) => {

@@ -1,26 +1,24 @@
+<<<<<<< HEAD
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
+=======
+// components/StampToggle.tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+>>>>>>> e8082cf4c86a91dd5df5581b3f5b4eea6a429bae
 
 interface StampToggleProps {
-  shopId: string;
+  shopId: string
 }
 
-type Stamp = {
-  shopId: string;
-  shopName: string;
-  status: 'tabetta' | 'tabetai';
-};
-
 export default function StampToggle({ shopId }: StampToggleProps) {
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
-  const [status, setStatus] = useState<Stamp['status'] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<'tabetai' | 'tabetta' | null>(null)
 
-  // 初期ロードで現在のスタンプ状態を取得
   useEffect(() => {
+<<<<<<< HEAD
     if (!userId) return;
     fetch(`/api/stamps?userId=${userId}`)
       .then(res => res.json())
@@ -52,9 +50,22 @@ export default function StampToggle({ shopId }: StampToggleProps) {
       console.error(e);
     } finally {
       setLoading(false);
+=======
+    if (!session) {
+      setStatus(null)
+      return
+>>>>>>> e8082cf4c86a91dd5df5581b3f5b4eea6a429bae
     }
-  };
+    // 認証済ならユーザーのスタンプ状態を取得
+    fetch(`/api/stamps?userId=${session.user.id}`)
+      .then(r => r.json())
+      .then((stamps: { shopId: string; status: 'tabetai' | 'tabetta' }[]) => {
+        const s = stamps.find(s => s.shopId === shopId)
+        setStatus(s?.status ?? null)
+      })
+  }, [session, shopId])
 
+<<<<<<< HEAD
   return (
     <div className="flex gap-2 mt-4">
       <button
@@ -82,3 +93,27 @@ export default function StampToggle({ shopId }: StampToggleProps) {
     </div>
   );
 }
+=======
+  const toggle = async () => {
+    if (!session) {
+      // 未認証ならメールサインイン画面へ
+      signIn('email', { callbackUrl: window.location.href })
+      return
+    }
+    // 認証済ならスタンプAPIを叩く
+    const nextStatus = status === 'tabetai' ? 'tabetta' : 'tabetai'
+    await fetch('/api/stamps', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: session.user.id, shopId, status: nextStatus }),
+    })
+    setStatus(nextStatus)
+  }
+
+  return (
+    <button onClick={toggle}>
+      {status === 'tabetai' ? 'タベタ!' : status === 'tabetta' ? 'タベタイ?' : 'スタンプする'}
+    </button>
+  )
+}
+>>>>>>> e8082cf4c86a91dd5df5581b3f5b4eea6a429bae
