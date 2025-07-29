@@ -1,22 +1,11 @@
-import { withAuth } from "next-auth/middleware";
+// middleware.ts
+import { withAuth } from "next-auth/middleware"
 
-export default withAuth(
-  function middleware(req) {
-    // 必要に応じて追加のロジックをここに記述
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => {
-        // トークンが存在すれば認証済み
-        return !!token
-      },
-    },
-    pages: {
-      signIn: '/auth/signin',
-    },
-  }
-);
+export default withAuth({
+  // stamp API だけ保護
+  matcher: ["/api/stamps/:path*"],
+})
 
-export const config = { 
-  matcher: ['/profile'] 
-};
+export const config = {
+  matcher: ["/api/stamps/:path*"],
+}
