@@ -17,6 +17,7 @@ export default withAuth(
   }
 );
 
+// 変更点: '/shops/:path*' を削除
 export const config = { 
-  matcher: ['/profile', '/map', '/genealogy', '/shops/:path*'] 
+  matcher: ['/profile', '/map', '/genealogy'] 
 };

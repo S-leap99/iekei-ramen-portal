@@ -1,8 +1,7 @@
-// components/StampToggle.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 
 interface StampToggleProps {
   shopId: string;
@@ -33,7 +32,14 @@ export default function StampToggle({ shopId }: StampToggleProps) {
   }, [userId, shopId]);
 
   const handleToggle = async (newStatus: Stamp['status']) => {
+    // 変更点: 未認証の場合はサインインページへリダイレクト
+    if (!session) {
+      signIn();
+      return;
+    }
+
     if (!userId) return;
+    
     setLoading(true);
     try {
       await fetch('/api/stamps', {
@@ -49,25 +55,29 @@ export default function StampToggle({ shopId }: StampToggleProps) {
     }
   };
 
-  if (!session) {
-    return <p className="text-sm text-gray-500">ログインでスタンプ可能</p>;
-  }
-
   return (
     <div className="flex gap-2 mt-4">
       <button
         onClick={() => handleToggle('tabetta')}
         disabled={loading}
-        className={`px-3 py-1 rounded ${status === 'tabetta' ? 'bg-blue-500 text-white' : 'border border-gray-300'}`}
+        className={`px-3 py-1 rounded ${
+          status === 'tabetta' 
+            ? 'bg-blue-500 text-white' 
+            : 'border border-gray-300 hover:bg-gray-50'
+        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        行った
+        {!session ? 'ログインして「行った」' : '行った'}
       </button>
       <button
         onClick={() => handleToggle('tabetai')}
         disabled={loading}
-        className={`px-3 py-1 rounded ${status === 'tabetai' ? 'bg-green-500 text-white' : 'border border-gray-300'}`}
+        className={`px-3 py-1 rounded ${
+          status === 'tabetai' 
+            ? 'bg-green-500 text-white' 
+            : 'border border-gray-300 hover:bg-gray-50'
+        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        行きたい
+        {!session ? 'ログインして「行きたい」' : '行きたい'}
       </button>
     </div>
   );
