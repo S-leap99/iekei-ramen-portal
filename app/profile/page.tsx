@@ -20,10 +20,20 @@ export default async function ProfilePage() {
     );
   }
   // スタンプ取得
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/api/stamps?userId=${session.user.id}`,
-    { cache: 'no-store' }
-  );  
+  const res = await fetch(`/api/stamps?userId=${session.user.id}`, {
+    cache: 'no-store',
+    redirect: 'manual', // ← リダイレクト発生時に明示的に検知できる
+  });
+
+  if (res.status === 401 || res.status === 403) {
+    // 未認証 or 禁止 → エラーメッセージを出す
+    return (
+      <div className="p-4">
+        <p>ログインが必要です</p>
+        <Link href="/auth/signin" className="text-blue-500">サインイン</Link>
+      </div>
+    );
+  }
   
   const stamps: Array<{ shopId: string; shopName: string; status: string }> = await res.json();
 
