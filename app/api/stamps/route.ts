@@ -30,11 +30,16 @@ export async function GET(request: Request) {
     }
   });
 
-  const result = stamps.map(s => ({ 
-    shopId: s.shopId, 
-    shopName: s.shop.name, 
-    status: s.status 
+  const result = stamps.map((s: {
+    shopId: string;
+    status: string;
+    shop: { name: string };
+  }) => ({
+    shopId: s.shopId,
+    shopName: s.shop.name,
+    status: s.status
   }));
+  
   
   return NextResponse.json(result);
 }
