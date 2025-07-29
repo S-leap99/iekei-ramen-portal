@@ -5,7 +5,6 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 
 interface Shop { 
   id: string; 
@@ -25,7 +24,6 @@ function Recenter({ center }: { center: [number, number] }) {
 }
 
 export default function MapComponent() {
-  const { data: session } = useSession();
   const userId = session?.user?.id;
   const params = useSearchParams();
   const centerId = params.get('centerId');
