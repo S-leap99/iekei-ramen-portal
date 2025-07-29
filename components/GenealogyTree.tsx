@@ -27,18 +27,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
     console.log('selectedNode changed:', selectedNode);
   }, [selectedNode]);
 
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    fetch(`/api/stamps?userId=${session.user.id}`)
-      .then(res => res.json())
-      .then((stamps: { shopId: string; status: 'tabetai' | 'tabetta' }[]) => {
-        const map: Record<string, 'tabetai' | 'tabetta'> = {};
-        stamps.forEach(s => { map[s.shopId] = s.status; });
-        setStampMap(map);
-      })
-      .catch(err => console.error('スタンプ情報取得エラー', err));
-  }, [session]);
-
   const handleNodeClick = useCallback(
     (nodeDatum: NodeDatum, evt: React.MouseEvent) => {
       evt.stopPropagation();
