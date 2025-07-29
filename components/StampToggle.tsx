@@ -1,4 +1,3 @@
-// components/StampToggle.tsx
 'use client'
 
 import { useEffect, useState } from 'react';
@@ -13,15 +12,11 @@ export default function StampToggle({ shopId }: StampToggleProps) {
   const [statusValue, setStatusValue] = useState<'tabetai' | 'tabetta' | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // スタンプの取得（ログインしていない場合は取得しない）
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      signIn(); // ← 認証されていなければ即座にサインイン画面へ
-      return;
-    }
+    if (status !== 'authenticated') return;
 
-    if (!session) return;
-
-    fetch(`/api/stamps?userId=${session.user.id}`)
+    fetch(`/api/stamps?userId=${session!.user.id}`)
       .then(res => res.json())
       .then(stamps => {
         const stamp = stamps.find((s: any) => s.shopId === shopId);
@@ -30,8 +25,15 @@ export default function StampToggle({ shopId }: StampToggleProps) {
       .catch(() => setStatusValue(null));
   }, [status, session, shopId]);
 
-  const toggleStatus = async (newStatus: 'tabetai' | 'tabetta') => {
+  // ボタンを押したときに初めて signIn() or API呼び出し
+  const handleToggle = async (newStatus: 'tabetai' | 'tabetta') => {
+    if (status === 'unauthenticated') {
+      signIn(); // この時点でログイン画面へ
+      return;
+    }
+
     if (!session) return;
+
     setLoading(true);
     await fetch('/api/stamps', {
       method: 'POST',
@@ -52,13 +54,13 @@ export default function StampToggle({ shopId }: StampToggleProps) {
     <div className="flex gap-4 mt-4">
       <button
         className={`px-4 py-2 rounded ${statusValue === 'tabetai' ? 'bg-red-500 text-white' : 'bg-gray-200'}`}
-        onClick={() => toggleStatus('tabetai')}
+        onClick={() => handleToggle('tabetai')}
       >
         タベタイ
       </button>
       <button
         className={`px-4 py-2 rounded ${statusValue === 'tabetta' ? 'bg-green-500 text-white' : 'bg-gray-200'}`}
-        onClick={() => toggleStatus('tabetta')}
+        onClick={() => handleToggle('tabetta')}
       >
         タベタ
       </button>
