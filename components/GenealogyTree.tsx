@@ -31,7 +31,7 @@ interface Shop {
 export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
   const router = useRouter();
 
-  const [stampMap, setStampMap] = useState<Record<string, 'tabetai' | 'tabetta'>>({});
+  const [stampMap] = useState<Record<string, 'tabetai' | 'tabetta'>>({});
   const [selectedNode, setSelectedNode] = useState<NodeDatum | null>(null);
   const [relatedShops, setRelatedShops] = useState<Shop[]>([]);
   const [selectedShopId, setSelectedShopId] = useState<string>('');
@@ -42,7 +42,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
   useEffect(() => {
     if (selectedNode) {
       const nodeId = selectedNode.attributes.id;
-      
       if (!nodeId) {
         setBrandIdPresent(false);
         setRelatedShops([]);
@@ -56,29 +55,24 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
         .then(res => res.json())
         .then(data => {
           const validShops = (data || []).filter((shop: Shop) => shop.brandId === nodeId);
-          
           if (validShops.length > 0) {
-            // ブランドIDを持つ複数店舗の場合
             setRelatedShops(validShops);
             setBrandIdPresent(true);
             setShouldShowShopSelect(validShops.length > 1);
-            
             if (validShops.length === 1) {
               setSelectedShopId(validShops[0].id);
             } else {
               setSelectedShopId('');
             }
           } else {
-            // ブランドIDがない単一店舗の場合、nodeIdを直接Shop.idとして扱う
             setBrandIdPresent(false);
             setRelatedShops([]);
             setSelectedShopId(nodeId);
             setShouldShowShopSelect(false);
           }
-          
           setPanelReady(true);
         })
-        .catch(err => {
+        .catch(() => {
           setBrandIdPresent(false);
           setRelatedShops([]);
           setSelectedShopId(nodeId);
@@ -94,13 +88,10 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
     }
   }, [selectedNode]);
 
-  const handleNodeClick = useCallback(
-    (nodeDatum: NodeDatum, evt: React.MouseEvent) => {
-      evt.stopPropagation();
-      setSelectedNode(nodeDatum);
-    },
-    []
-  );
+  const handleNodeClick = useCallback((nodeDatum: NodeDatum, evt: React.MouseEvent) => {
+    evt.stopPropagation();
+    setSelectedNode(nodeDatum);
+  }, []);
 
   const handleBackgroundClick = (evt: React.MouseEvent) => {
     if (evt.currentTarget === evt.target) setSelectedNode(null);
@@ -108,12 +99,7 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
 
   const renderRectNode: RenderCustomNodeElementFn = (props) => {
     const nodeDatum = (props as CustomNodeElementProps).nodeDatum as unknown as NodeDatum;
-    const status = stampMap[nodeDatum.attributes.id];
-    const fillColor =
-      status === 'tabetai' ? '#ef4444'
-      : status === 'tabetta' ? '#9ca3af'
-      : '#f3f4f6';
-
+    const fillColor = '#f3f4f6';
     return (
       <g style={{ pointerEvents: 'all', cursor: 'pointer' }} onClick={evt => handleNodeClick(nodeDatum, evt)}>
         <rect width={100} height={160} x={-50} y={-80} rx={8} ry={10} fill={fillColor} stroke="#4b5563" strokeWidth={2} />
@@ -136,11 +122,9 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
     );
   };
 
-  // ナビゲーション用のshopIdを取得する関数
   const getNavigationShopId = () => {
     if (selectedShopId) return selectedShopId;
     if (relatedShops.length === 1) return relatedShops[0].id;
-    // フォールバックとしてnodeIdを返す
     return selectedNode?.attributes.id || '';
   };
 
@@ -196,7 +180,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
               </div>
             )}
 
-            {/* 単一店舗（ブランドIDなし）の場合の表示を追加 */}
             {!brandIdPresent && selectedShopId && (
               <div style={{ marginBottom: '16px' }}>
                 <p style={{ fontWeight: 500, marginBottom: '8px' }}>店舗：</p>
@@ -206,7 +189,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
               </div>
             )}
 
-            {/* 単一店舗の場合の表示を追加 */}
             {brandIdPresent && relatedShops.length === 1 && (
               <div style={{ marginBottom: '16px' }}>
                 <p style={{ fontWeight: 500, marginBottom: '8px' }}>店舗：</p>
@@ -216,29 +198,17 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
               </div>
             )}
 
-            {/* ナビゲーションボタンの表示条件を修正 */}
-              brandIdPresent,
-              relatedShopsLength: relatedShops.length,
-              selectedShopId,
-              shouldShow: (!brandIdPresent || relatedShops.length === 1 || selectedShopId)
-            })}
             {(!brandIdPresent || relatedShops.length === 1 || selectedShopId) && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <button
                   style={{ padding: '8px 16px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                  onClick={() => {
-                    const shopId = getNavigationShopId();
-                    router.push(`/shops/${shopId}`);
-                  }}
+                  onClick={() => router.push(`/shops/${getNavigationShopId()}`)}
                 >
                   店舗詳細
                 </button>
                 <button
                   style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                  onClick={() => {
-                    const shopId = getNavigationShopId();
-                    router.push(`/map?centerId=${shopId}`);
-                  }}
+                  onClick={() => router.push(`/map?centerId=${getNavigationShopId()}`)}
                 >
                   マップ
                 </button>
