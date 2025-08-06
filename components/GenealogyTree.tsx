@@ -173,7 +173,7 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
                   <option value="">選択してください</option>
                   {relatedShops.map(shop => (
                     <option key={shop.id} value={shop.id}>
-                      {shop.name}（{shop.address}）
+                      {shop.name}
                     </option>
                   ))}
                 </select>
