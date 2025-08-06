@@ -42,10 +42,8 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
   useEffect(() => {
     if (selectedNode) {
       const nodeId = selectedNode.attributes.id;
-      console.log('🔍 Selected node:', selectedNode.name, 'nodeId:', nodeId);
       
       if (!nodeId) {
-        console.log('❌ No nodeId found');
         setBrandIdPresent(false);
         setRelatedShops([]);
         setSelectedShopId('');
@@ -54,31 +52,24 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
         return;
       }
 
-      console.log('📡 Fetching shops for nodeId:', nodeId);
       fetch(`/api/shops?brand=${nodeId}`)
         .then(res => res.json())
         .then(data => {
-          console.log('📦 Raw API response:', data);
           const validShops = (data || []).filter((shop: Shop) => shop.brandId === nodeId);
-          console.log('✅ Valid shops filtered:', validShops);
           
           if (validShops.length > 0) {
             // ブランドIDを持つ複数店舗の場合
-            console.log('🏢 Brand with multiple shops');
             setRelatedShops(validShops);
             setBrandIdPresent(true);
             setShouldShowShopSelect(validShops.length > 1);
             
             if (validShops.length === 1) {
-              console.log('🎯 Auto-selecting single brand shop:', validShops[0]);
               setSelectedShopId(validShops[0].id);
             } else {
-              console.log('🔄 Multiple brand shops found, requiring selection');
               setSelectedShopId('');
             }
           } else {
             // ブランドIDがない単一店舗の場合、nodeIdを直接Shop.idとして扱う
-            console.log('🏪 Single shop without brandId, using nodeId as shopId:', nodeId);
             setBrandIdPresent(false);
             setRelatedShops([]);
             setSelectedShopId(nodeId);
@@ -88,9 +79,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
           setPanelReady(true);
         })
         .catch(err => {
-          console.error('❌ 関連店舗取得エラー:', err);
-          // エラーの場合もnodeIdを直接Shop.idとして扱う
-          console.log('🏪 Error occurred, fallback to using nodeId as shopId:', nodeId);
           setBrandIdPresent(false);
           setRelatedShops([]);
           setSelectedShopId(nodeId);
@@ -98,7 +86,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
           setPanelReady(true);
         });
     } else {
-      console.log('🚫 No node selected, resetting state');
       setRelatedShops([]);
       setSelectedShopId('');
       setShouldShowShopSelect(false);
@@ -230,7 +217,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
             )}
 
             {/* ナビゲーションボタンの表示条件を修正 */}
-            {console.log('🎮 Rendering navigation section:', {
               brandIdPresent,
               relatedShopsLength: relatedShops.length,
               selectedShopId,
@@ -242,7 +228,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
                   style={{ padding: '8px 16px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
                   onClick={() => {
                     const shopId = getNavigationShopId();
-                    console.log('🏪 Navigating to shop details:', shopId);
                     router.push(`/shops/${shopId}`);
                   }}
                 >
@@ -252,7 +237,6 @@ export default function GenealogyTree({ data }: { data: NodeDatum[] }) {
                   style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
                   onClick={() => {
                     const shopId = getNavigationShopId();
-                    console.log('🗺️ Navigating to map:', shopId);
                     router.push(`/map?centerId=${shopId}`);
                   }}
                 >
