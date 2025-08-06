@@ -37,7 +37,7 @@ npx prisma studio
 
 GitHub
 ===
-git add -A
-git commit -m "Supabase 切り替え反映"
-git push origin main
+git add 変更したディレクトリ\ファイル名.拡張子
+git commit -m "識別名称(自分がわかりやすければなんでもいいっぽい)"
+git push
 ===

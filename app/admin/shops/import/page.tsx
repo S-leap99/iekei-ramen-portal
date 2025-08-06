@@ -13,6 +13,7 @@ interface ShopRow {
   parentId?: string;
   lat?: string;
   lng?: string;
+  brandName?: string;
   errors: string[];
 }
 
@@ -24,7 +25,6 @@ export default function ImportShopsPage() {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
 
-  // 既存データ取得（重複チェック用）
   useEffect(() => {
     fetch('/api/admin/shops')
       .then(res => res.json())
@@ -32,14 +32,12 @@ export default function ImportShopsPage() {
       .catch(err => console.error(err));
   }, []);
 
-  // ファイル選択ハンドラ
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGlobalError(null);
     const f = e.target.files?.[0] ?? null;
     setFile(f);
   };
 
-  // CSV の読み込みとプレビュー生成
   const handleParse = () => {
     if (!file) return;
     const reader = new FileReader();
@@ -47,8 +45,7 @@ export default function ImportShopsPage() {
       const text = reader.result as string;
       const lines = text.split(/\r?\n/).filter(l => l.trim());
       const header = lines[0].split(',').map(h => h.trim());
-      const expected = ['id','name','address','paymentMethods','twitter','parentId','lat','lng'];
-      // 必須ヘッダ確認
+      const expected = ['id','name','address','paymentMethods','twitter','parentId','lat','lng','brandName'];
       if (!expected.every(h => header.includes(h))) {
         setGlobalError(`CSV ヘッダは ${expected.join(', ')} の順番で存在する必要があります`);
         return;
@@ -59,14 +56,11 @@ export default function ImportShopsPage() {
         const obj: any = {};
         header.forEach((h, idx) => { obj[h] = values[idx] ?? ''; });
         const errs: string[] = [];
-        // 必須チェック
         if (!obj.id) errs.push('IDが空です');
         if (!obj.name) errs.push('店名が空です');
         if (!obj.address) errs.push('住所が空です');
-        // 既存重複チェック
         if (existing.some(s => s.id === obj.id)) errs.push('IDが既存と重複');
         if (existing.some(s => s.name === obj.name && s.address === obj.address)) errs.push('店名+住所が既存と重複');
-        // 行内重複チェック
         if (newRows.some(r => r.id === obj.id)) errs.push('ファイル内でID重複');
         if (newRows.some(r => r.name === obj.name && r.address === obj.address)) errs.push('ファイル内で店名+住所重複');
         newRows.push({
@@ -78,6 +72,7 @@ export default function ImportShopsPage() {
           parentId: obj.parentId,
           lat: obj.lat,
           lng: obj.lng,
+          brandName: obj.brandName,
           errors: errs,
         });
       }
@@ -86,7 +81,6 @@ export default function ImportShopsPage() {
     reader.readAsText(file, 'utf-8');
   };
 
-  // インポート実行
   const handleImport = async () => {
     setImporting(true);
     for (const row of rows) {
@@ -99,11 +93,12 @@ export default function ImportShopsPage() {
             id: row.id,
             name: row.name,
             address: row.address,
-            paymentMethods: row.paymentMethods.split(',').map((v:any) => v.trim()),
+            paymentMethods: row.paymentMethods.split(',').map((v: any) => v.trim()),
             twitter: row.twitter || undefined,
             parentId: row.parentId || undefined,
             lat: row.lat ? parseFloat(row.lat) : undefined,
             lng: row.lng ? parseFloat(row.lng) : undefined,
+            brandName: row.brandName || undefined,
           }),
         });
       } catch (e) {
@@ -133,6 +128,7 @@ export default function ImportShopsPage() {
                 <th className="border px-2 py-1">ID</th>
                 <th className="border px-2 py-1">店名</th>
                 <th className="border px-2 py-1">住所</th>
+                <th className="border px-2 py-1">ブランド</th>
                 <th className="border px-2 py-1">エラー</th>
               </tr>
             </thead>
@@ -143,6 +139,7 @@ export default function ImportShopsPage() {
                   <td className="border px-2 py-1">{r.id}</td>
                   <td className="border px-2 py-1">{r.name}</td>
                   <td className="border px-2 py-1">{r.address}</td>
+                  <td className="border px-2 py-1">{r.brandName || ''}</td>
                   <td className="border px-2 py-1 text-red-600">
                     {r.errors.map((e, idx) => <div key={idx}>{e}</div>)}
                   </td>

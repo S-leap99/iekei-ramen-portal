@@ -1,4 +1,3 @@
-// app/admin/shops/new/page.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,9 +8,15 @@ interface Shop {
   address: string;
 }
 
+interface Brand {
+  id: string;
+  name: string;
+}
+
 export default function NewShopPage() {
   const router = useRouter();
   const [allShops, setAllShops] = useState<Shop[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [form, setForm] = useState({
     id: '',
     name: '',
@@ -20,15 +25,24 @@ export default function NewShopPage() {
     twitter: '',
     parentId: '',
     lat: '',
-    lng: ''
+    lng: '',
+    brandId: '', // ← brandIdを追加
   });
   const [error, setError] = useState<string | null>(null);
 
-  // 既存店舗取得（親選択用）
+  // 既存店舗の取得（親店舗選択用）
   useEffect(() => {
     fetch('/api/admin/shops')
       .then(res => res.json())
       .then(setAllShops)
+      .catch(console.error);
+  }, []);
+
+  // ブランド一覧の取得
+  useEffect(() => {
+    fetch('/api/admin/brands')
+      .then(res => res.json())
+      .then(setBrands)
       .catch(console.error);
   }, []);
 
@@ -40,22 +54,18 @@ export default function NewShopPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ID必須
     if (!form.id.trim()) {
       setError('店舗IDは必須です');
       return;
     }
-    // ID重複チェック
     if (allShops.some(s => s.id === form.id)) {
       setError('同じIDの店舗が既に存在します');
       return;
     }
-    // 名前・住所必須
     if (!form.name.trim() || !form.address.trim()) {
       setError('店名と住所は必須です');
       return;
     }
-    // 店名＋住所重複チェック
     if (allShops.some(s => s.name === form.name && s.address === form.address)) {
       setError('同じ店名と住所の店舗が既に登録されています');
       return;
@@ -73,6 +83,7 @@ export default function NewShopPage() {
       parentId: form.parentId || undefined,
       lat: form.lat ? parseFloat(form.lat) : undefined,
       lng: form.lng ? parseFloat(form.lng) : undefined,
+      brandId: form.brandId || undefined, // ← 追加
     };
 
     const res = await fetch('/api/admin/shops', {
@@ -157,6 +168,23 @@ export default function NewShopPage() {
               {allShops.map(s => (
                 <option key={s.id} value={s.id}>
                   {s.name} ({s.id})
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div>
+          <label>ブランド
+            <select
+              name="brandId"
+              value={form.brandId}
+              onChange={handleChange}
+              className="border p-2 w-full"
+            >
+              <option value="">――選択してください――</option>
+              {brands.map(brand => (
+                <option key={brand.id} value={brand.id}>
+                  {brand.name}
                 </option>
               ))}
             </select>

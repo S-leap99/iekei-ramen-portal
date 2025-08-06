@@ -1,4 +1,3 @@
-// app/admin/shops/[id]/edit/page.tsx
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -9,10 +8,16 @@ interface Shop {
   address: string;
 }
 
+interface Brand {
+  id: string;
+  name: string;
+}
+
 export default function EditShopPage() {
   const router = useRouter();
   const { id } = useParams();
   const [allShops, setAllShops] = useState<Shop[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [form, setForm] = useState({
     id: '',
     name: '',
@@ -21,11 +26,12 @@ export default function EditShopPage() {
     twitter: '',
     parentId: '',
     lat: '',
-    lng: ''
+    lng: '',
+    brandId: '', // ← 追加
   });
   const [error, setError] = useState<string | null>(null);
 
-  // 既存店舗一覧（親選択＆ID重複チェック用）
+  // 既存店舗一覧（親選択用）
   useEffect(() => {
     fetch('/api/admin/shops')
       .then(res => res.json())
@@ -33,7 +39,15 @@ export default function EditShopPage() {
       .catch(console.error);
   }, []);
 
-  // 編集対象データ読み込み
+  // ブランド一覧
+  useEffect(() => {
+    fetch('/api/admin/brands')
+      .then(res => res.json())
+      .then(setBrands)
+      .catch(console.error);
+  }, []);
+
+  // 編集対象データの取得
   useEffect(() => {
     (async () => {
       const res = await fetch(`/api/admin/shops/${id}`);
@@ -50,7 +64,8 @@ export default function EditShopPage() {
         twitter: data.twitter || '',
         parentId: data.parentId || '',
         lat: data.lat != null ? String(data.lat) : '',
-        lng: data.lng != null ? String(data.lng) : ''
+        lng: data.lng != null ? String(data.lng) : '',
+        brandId: data.brandId || '', // ← 追加
       });
     })();
   }, [id]);
@@ -63,17 +78,14 @@ export default function EditShopPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 基本バリデーション
     if (!form.id.trim() || !form.name.trim() || !form.address.trim()) {
       setError('ID・店名・住所は必須です');
       return;
     }
-    // ID重複チェック（自身を除く）
     if (allShops.some(s => s.id === form.id && s.id !== id)) {
       setError('同じIDの店舗が既に存在します');
       return;
     }
-    // 店名＋住所重複チェック
     if (
       allShops.some(s =>
         s.id !== id &&
@@ -97,6 +109,7 @@ export default function EditShopPage() {
       parentId: form.parentId || undefined,
       lat: form.lat ? parseFloat(form.lat) : undefined,
       lng: form.lng ? parseFloat(form.lng) : undefined,
+      brandId: form.brandId || undefined, // ← 追加
     };
 
     const res = await fetch(`/api/admin/shops/${id}`, {
@@ -181,6 +194,23 @@ export default function EditShopPage() {
               {allShops.map(s => (
                 <option key={s.id} value={s.id}>
                   {s.name} ({s.id})
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div>
+          <label>ブランド
+            <select
+              name="brandId"
+              value={form.brandId}
+              onChange={handleChange}
+              className="border p-2 w-full"
+            >
+              <option value="">――選択してください――</option>
+              {brands.map(b => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
                 </option>
               ))}
             </select>

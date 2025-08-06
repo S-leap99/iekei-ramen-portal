@@ -1,50 +1,41 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-
-// prisma/schema.prisma
-// ====================
-// PostgreSQL データベース設定
-// ====================
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["jsonProtocol"]
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["jsonProtocol"]
+
+model Brand {
+  id     String  @id @default(cuid())   // ← この `id` が...
+  name   String  @unique
+  shops  Shop[]                         // ← 関連する Shop たち
 }
 
-// ====================
-// モデル定義：Shop
-// ====================
 model Shop {
-  id             String              @id @default(cuid())
-  name           String
-  address        String
-  lat            Float?              // 緯度
-  lng            Float?              // 経度
-  paymentMethods Json                @default("[]")
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  lat       Float
+  lng       Float
+  paymentMethods Json              @default("[]")
   twitter        String?
-  parentId       String?             // 親ノードのID
-  parent         Shop?               @relation("ShopToChildren", fields: [parentId], references: [id])
-  children       Shop[]              @relation("ShopToChildren")
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  stamps         UserStampedShop[]
+  parentId       String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  parent         Shop?             @relation("ShopToChildren", fields: [parentId], references: [id])
+  children       Shop[]            @relation("ShopToChildren")
+  stamps         UserStampedShop[]  
+  brandId   String?                      // ← ここで Brand.id を参照する外部キー
+  brand     Brand?   @relation(fields: [brandId], references: [id])
 }
 
-// ====================
-// アカウント認証用
-// ====================
 model User {
-  id            String              @id @default(cuid())
-  email         String              @unique
+  id            String            @id @default(cuid())
+  email         String            @unique
   emailVerified DateTime?
   name          String?
   accounts      Account[]
@@ -55,18 +46,18 @@ model User {
 /// ユーザーが付けたスタンプ情報
 model UserStampedShop {
   id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   shopId    String
-  status    String   // "tabetai" または "tabetta"
+  status    String
   createdAt DateTime @default(now())
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, shopId])
 }
 
 model Account {
-  id                String   @id @default(cuid())
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
@@ -78,7 +69,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }

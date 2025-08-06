@@ -11,12 +11,14 @@ interface Shop {
   id: string;
   name: string;
   address: string;
-  lat: number;        // 追加
-  lng: number;        // 追加
-  parentId?: string;  // 追加（nullableの場合は?を付ける）
+  lat: number;
+  lng: number;
+  parentId?: string;
   paymentMethods: string[];
   twitter?: string;
+  brand?: { id: string; name: string }; // ← 追加
 }
+
 export default function ShopListPage() {
   const [shops, setShops] = useState<Shop[]>([]);
 
@@ -47,6 +49,7 @@ export default function ShopListPage() {
             <th className="border px-4 py-2">経度</th>
             <th className="border px-4 py-2">親店舗</th>
             <th className="border px-4 py-2">支払い方法</th>
+            <th className="border px-4 py-2">ブランド</th>
             <th className="border px-4 py-2">操作</th>
           </tr>
         </thead>
@@ -56,11 +59,11 @@ export default function ShopListPage() {
               <td className="border px-4 py-2">{shop.id}</td>
               <td className="border px-4 py-2">{shop.name}</td>
               <td className="border px-4 py-2">{shop.address}</td>
-              console.log(typeof shop);
               <td className="border px-4 py-2">{shop.lat}</td>
               <td className="border px-4 py-2">{shop.lng}</td>
               <td className="border px-4 py-2">{shop.parentId}</td>
               <td className="border px-4 py-2">{shop.paymentMethods.join(', ')}</td>
+              <td className="border px-4 py-2">{shop.brand?.name || ''}</td> {/* ← 追加 */}
               <td className="border px-4 py-2 space-x-2">
                 <Link href={`/admin/shops/${shop.id}/edit`} className="text-blue-500">編集</Link>
                 <button onClick={() => handleDelete(shop.id)} className="text-red-500">削除</button>
